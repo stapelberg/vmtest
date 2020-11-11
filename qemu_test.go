@@ -83,6 +83,9 @@ func TestBootCurrentLinuxKernelInQemu(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if err := qemu.Run(); err != nil {
+		t.Fatal(err)
+	}
 	// Stop QEMU at the end of the test case
 	defer qemu.Stop()
 
@@ -128,6 +131,9 @@ func TestRunArmInQemu(t *testing.T) {
 	}
 	qemu, err := NewQemu(&opts)
 	if err != nil {
+		t.Fatal(err)
+	}
+	if err := qemu.Run(); err != nil {
 		t.Fatal(err)
 	}
 	defer qemu.Stop()

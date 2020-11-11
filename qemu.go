@@ -188,34 +188,40 @@ func NewQemu(opts *QemuOptions) (*Qemu, error) {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 	}
-	err = cmd.Start()
-	if err != nil {
-		return nil, fmt.Errorf("starting QEMU: %v", err)
-	}
-
-	monitor, err := monitorListener.Accept()
-	if err != nil {
-		return nil, err
-	}
-	console, err := consoleListener.Accept()
-	if err != nil {
-		return nil, err
-	}
 
 	qemu := &Qemu{
 		cmd:             cmd,
 		socketsDir:      tempDir,
 		monitorListener: monitorListener,
-		monitor:         monitor,
 		consoleListener: consoleListener,
-		console:         console,
 		ctxCancel:       ctxCancel,
 		verbose:         opts.Verbose,
 	}
 
-	go qemu.consolePump(opts.Verbose)
-
 	return qemu, nil
+}
+
+func (q *Qemu) Run() error {
+	err := q.cmd.Start()
+	if err != nil {
+		return fmt.Errorf("starting QEMU: %v", err)
+	}
+
+	monitor, err := q.monitorListener.Accept()
+	if err != nil {
+		return err
+	}
+	q.monitor = monitor
+
+	console, err := q.consoleListener.Accept()
+	if err != nil {
+		return err
+	}
+	q.console = console
+
+	go q.consolePump(q.verbose)
+
+	return nil
 }
 
 // List of escape sequences produced by Seabios/Linux
